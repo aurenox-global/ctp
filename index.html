@@ -2,9 +2,11 @@
 <html lang="es">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>⚡ Calculadora de Planta Eléctrica</title>
-	<meta name="description" content="Calcula qué equipos puedes conectar a tu planta eléctrica y por cuántas horas." />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="mobile-web-app-capable" content="yes" />
+	<title>⚡ Calculadora de Planta</title>
+	<meta name="description" content="Calcula qué equipos puedes conectar a tu planta eléctrica" />
 	<style>
 		:root {
 			--bg: #f5f5f5;
@@ -31,176 +33,228 @@
 			--shadow: 0 2px 8px rgba(0,0,0,.5);
 		}
 
-		* { box-sizing: border-box; margin: 0; padding: 0; }
+		* { 
+			box-sizing: border-box; 
+			margin: 0; 
+			padding: 0;
+			-webkit-tap-highlight-color: transparent;
+		}
+		
 		body {
 			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 			background: var(--bg);
 			color: var(--text);
-			line-height: 1.6;
-			padding-bottom: 100px;
+			line-height: 1.5;
+			padding-bottom: 160px;
+			overflow-x: hidden;
 		}
 
-		/* Header */
+		/* Header optimizado para móvil */
 		header {
 			background: var(--surface);
 			border-bottom: 2px solid var(--border);
-			padding: 15px 20px;
+			padding: 12px 15px;
 			position: sticky;
 			top: 0;
 			z-index: 100;
 			box-shadow: var(--shadow);
 		}
 		.header-content {
-			max-width: 1200px;
-			margin: 0 auto;
 			display: flex;
 			align-items: center;
-			gap: 15px;
-			flex-wrap: wrap;
+			gap: 10px;
 		}
 		.title {
-			font-size: 20px;
+			font-size: 18px;
 			font-weight: bold;
 			flex: 1;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 		.btn {
-			padding: 8px 16px;
+			padding: 10px 14px;
 			border: 2px solid var(--border);
 			background: var(--surface);
 			color: var(--text);
 			border-radius: 8px;
 			cursor: pointer;
-			font-size: 14px;
+			font-size: 16px;
 			font-weight: 500;
 			transition: all 0.2s;
+			white-space: nowrap;
+			min-height: 44px; /* Tamaño mínimo táctil iOS */
 		}
-		.btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
-		.btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+		.btn:active { 
+			transform: scale(0.95); 
+			opacity: 0.8;
+		}
+		.btn.primary { 
+			background: var(--primary); 
+			color: white; 
+			border-color: var(--primary); 
+		}
 
-		/* Main */
+		/* Main con padding optimizado */
 		main {
-			max-width: 1200px;
-			margin: 0 auto;
-			padding: 20px;
+			padding: 15px;
 		}
 		.card {
 			background: var(--surface);
 			border: 2px solid var(--border);
 			border-radius: 12px;
-			padding: 20px;
-			margin-bottom: 20px;
+			padding: 15px;
+			margin-bottom: 15px;
 			box-shadow: var(--shadow);
 		}
 		.card-title {
-			font-size: 18px;
+			font-size: 17px;
 			font-weight: bold;
-			margin-bottom: 15px;
+			margin-bottom: 12px;
 			display: flex;
 			align-items: center;
-			gap: 10px;
+			gap: 8px;
 		}
-		.card-title .emoji { font-size: 24px; }
+		.card-title .emoji { font-size: 22px; }
 
-		/* Grid simplificado */
+		/* Grid para móvil */
 		.grid {
-			display: grid;
-			gap: 15px;
-			grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
 		}
 		.field {
 			display: flex;
 			flex-direction: column;
-			gap: 8px;
+			gap: 6px;
 		}
 		.field label {
 			font-weight: 600;
-			font-size: 14px;
+			font-size: 15px;
 			color: var(--text);
 		}
 		.field .help {
-			font-size: 12px;
+			font-size: 13px;
 			color: var(--muted);
+			line-height: 1.4;
 		}
 		.field input, .field select {
-			padding: 12px;
+			padding: 14px;
 			border: 2px solid var(--border);
-			border-radius: 8px;
+			border-radius: 10px;
 			background: var(--bg);
 			color: var(--text);
 			font-size: 16px;
 			width: 100%;
+			min-height: 48px; /* Tamaño táctil */
 		}
 		.field input:focus, .field select:focus {
 			outline: none;
 			border-color: var(--primary);
 		}
 
-		/* Dispositivos - Tabla simplificada */
+		/* Perfiles en columna para móvil */
+		.profiles {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+		.profiles .btn {
+			width: 100%;
+		}
+
+		/* Dispositivos optimizados para móvil */
 		.device-group {
-			margin-bottom: 25px;
+			margin-bottom: 20px;
 		}
 		.group-title {
 			font-size: 16px;
 			font-weight: bold;
-			margin-bottom: 12px;
-			padding: 10px;
+			margin-bottom: 10px;
+			padding: 12px;
 			background: var(--bg);
-			border-radius: 8px;
+			border-radius: 10px;
 			display: flex;
 			align-items: center;
-			gap: 10px;
+			gap: 8px;
 		}
 		.device-list {
-			display: grid;
+			display: flex;
+			flex-direction: column;
 			gap: 10px;
 		}
 		.device-row {
-			display: grid;
-			grid-template-columns: 50px 1fr 120px 100px 100px;
-			gap: 10px;
-			align-items: center;
-			padding: 15px;
 			background: var(--surface);
 			border: 2px solid var(--border);
-			border-radius: 10px;
+			border-radius: 12px;
+			padding: 12px;
 			transition: all 0.2s;
 		}
-		.device-row:hover {
+		.device-row:active {
+			transform: scale(0.98);
 			border-color: var(--primary);
-			box-shadow: var(--shadow);
+		}
+		
+		.device-header {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			margin-bottom: 10px;
 		}
 		.device-icon {
 			font-size: 32px;
+			min-width: 40px;
 			text-align: center;
 		}
 		.device-info {
-			display: flex;
-			flex-direction: column;
-			gap: 4px;
+			flex: 1;
+			min-width: 0;
 		}
 		.device-name {
 			font-weight: 600;
-			font-size: 14px;
+			font-size: 15px;
+			margin-bottom: 2px;
 		}
 		.device-power {
 			font-size: 12px;
 			color: var(--muted);
-		}
-		.device-row select, .device-row input {
-			padding: 10px;
-			border: 2px solid var(--border);
-			border-radius: 6px;
-			background: var(--bg);
-			color: var(--text);
-			font-size: 14px;
+			line-height: 1.3;
 		}
 		.device-total {
 			font-weight: bold;
-			text-align: right;
 			color: var(--primary);
+			font-size: 16px;
+			white-space: nowrap;
+		}
+		
+		.device-controls {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+		.device-row select, 
+		.device-row input {
+			padding: 12px;
+			border: 2px solid var(--border);
+			border-radius: 8px;
+			background: var(--bg);
+			color: var(--text);
+			font-size: 15px;
+			width: 100%;
+			min-height: 44px;
+		}
+		
+		.control-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 8px;
+		}
+		
+		.time-full {
+			grid-column: 1 / -1;
 		}
 
-		/* Footer de resumen */
+		/* Footer optimizado para móvil */
 		footer {
 			position: fixed;
 			bottom: 0;
@@ -208,39 +262,43 @@
 			right: 0;
 			background: var(--surface);
 			border-top: 3px solid var(--primary);
-			padding: 15px 20px;
-			box-shadow: 0 -2px 10px rgba(0,0,0,.1);
+			padding: 12px 15px;
+			box-shadow: 0 -2px 10px rgba(0,0,0,.2);
+			max-height: 160px;
+			overflow-y: auto;
 		}
 		.footer-content {
-			max-width: 1200px;
-			margin: 0 auto;
 			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-			gap: 15px;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
 		}
 		.summary-item {
 			display: flex;
 			flex-direction: column;
-			gap: 5px;
+			gap: 4px;
 		}
 		.summary-label {
-			font-size: 12px;
+			font-size: 11px;
 			color: var(--muted);
 			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
 		}
 		.summary-value {
-			font-size: 20px;
+			font-size: 18px;
 			font-weight: bold;
+			line-height: 1.2;
 		}
 		.summary-value.ok { color: var(--ok); }
 		.summary-value.warn { color: var(--warn); }
 		.summary-value.danger { color: var(--danger); }
+		
 		.progress-bar {
-			height: 12px;
+			height: 8px;
 			background: var(--border);
 			border-radius: 20px;
 			overflow: hidden;
-			margin-top: 5px;
+			margin-top: 4px;
 		}
 		.progress-fill {
 			height: 100%;
@@ -250,40 +308,55 @@
 		.progress-fill.warn { background: var(--warn); }
 		.progress-fill.danger { background: var(--danger); }
 
-		.time-input {
-			width: 100%;
+		/* Mensajes toast para feedback */
+		.toast {
+			position: fixed;
+			top: 70px;
+			left: 50%;
+			transform: translateX(-50%);
+			background: var(--surface);
+			border: 2px solid var(--primary);
+			padding: 12px 20px;
+			border-radius: 10px;
+			box-shadow: var(--shadow);
+			z-index: 200;
+			opacity: 0;
+			transition: opacity 0.3s;
+			pointer-events: none;
+		}
+		.toast.show {
+			opacity: 1;
 		}
 
-		/* Responsive */
-		@media (max-width: 768px) {
-			.device-row {
-				grid-template-columns: 40px 1fr;
-				gap: 8px;
+		/* Animaciones suaves */
+		@keyframes slideIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
 			}
-			.device-row select { grid-column: 1 / -1; }
-			.device-row input { grid-column: 1 / -1; }
-			.device-row .time-input { grid-column: 1 / -1; }
-			.device-total { text-align: left; grid-column: 1 / -1; }
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+		.device-row {
+			animation: slideIn 0.3s ease-out;
 		}
 
-		/* Sección de perfiles */
-		.profiles {
-			display: flex;
-			gap: 10px;
-			flex-wrap: wrap;
-		}
-		.profiles .btn {
-			flex: 1;
-			min-width: 150px;
+		/* Mejoras de accesibilidad táctil */
+		input[type="number"]::-webkit-inner-spin-button,
+		input[type="number"]::-webkit-outer-spin-button {
+			opacity: 1;
+			height: 40px;
 		}
 	</style>
 </head>
 <body>
 	<header>
 		<div class="header-content">
-			<div class="title">⚡ Calculadora de Planta Eléctrica</div>
-			<button id="themeBtn" class="btn">🌓 Tema</button>
-			<button id="resetBtn" class="btn">🔄 Reiniciar</button>
+			<div class="title">⚡ Calculadora de Planta</div>
+			<button id="themeBtn" class="btn">🌓</button>
+			<button id="resetBtn" class="btn">🔄</button>
 		</div>
 	</header>
 
@@ -292,23 +365,23 @@
 		<div class="card">
 			<div class="card-title">
 				<span class="emoji">⚙️</span>
-				Configuración de tu Planta
+				Configuración
 			</div>
 			<div class="grid">
 				<div class="field">
 					<label>💪 Potencia de la Planta (Watts)</label>
-					<input type="number" id="plantPower" min="0" placeholder="Ejemplo: 600" />
+					<input type="number" id="plantPower" min="0" placeholder="600" inputmode="numeric" />
 					<span class="help">¿Cuántos Watts puede dar tu planta?</span>
 				</div>
 				<div class="field">
 					<label>🔋 Energía Disponible (Wh)</label>
-					<input type="number" id="energyWh" min="0" placeholder="Ejemplo: 2000" />
-					<span class="help">Watts-hora que tienes disponibles</span>
+					<input type="number" id="energyWh" min="0" placeholder="2000" inputmode="numeric" />
+					<span class="help">Watts-hora disponibles</span>
 				</div>
 				<div class="field">
 					<label>🛡️ Margen de Seguridad (%)</label>
-					<input type="number" id="safety" min="50" max="100" value="80" />
-					<span class="help">Se recomienda usar solo el 80%</span>
+					<input type="number" id="safety" min="50" max="100" value="80" inputmode="numeric" />
+					<span class="help">Recomendado: 80%</span>
 				</div>
 			</div>
 		</div>
@@ -346,22 +419,24 @@
 				</div>
 			</div>
 			<div class="summary-item">
-				<div class="summary-label">Potencia Disponible</div>
+				<div class="summary-label">Disponible</div>
 				<div class="summary-value" id="powerAvailable">0 W</div>
 			</div>
 			<div class="summary-item">
-				<div class="summary-label">⏱️ Tiempo Estimado</div>
-				<div class="summary-value" id="timeEstimate">-- horas</div>
+				<div class="summary-label">⏱️ Tiempo</div>
+				<div class="summary-value" id="timeEstimate">-- h</div>
 			</div>
 			<div class="summary-item">
 				<div class="summary-label">Estado</div>
-				<div class="summary-value ok" id="status">✅ Todo bien</div>
+				<div class="summary-value ok" id="status">✅ OK</div>
 			</div>
 		</div>
 	</footer>
 
+	<div class="toast" id="toast"></div>
+
 	<script>
-		// Datos de dispositivos simplificados
+		// Datos de dispositivos
 		const DEVICES = [
 			{
 				group: '💡 Iluminación',
@@ -394,7 +469,7 @@
 					{ id: 'laptop', icon: '💻', name: 'Laptop', watts: [45, 65, 90], showTime: true },
 					{ id: 'pc', icon: '🖥️', name: 'Computadora', watts: [150, 250, 400], showTime: true },
 					{ id: 'router', icon: '📡', name: 'Router WiFi', watts: [8, 12, 20], showTime: true },
-					{ id: 'phone', icon: '📱', name: 'Cargador Celular', watts: [5, 10, 18], showTime: true }
+					{ id: 'phone', icon: '📱', name: 'Cargador', watts: [5, 10, 18], showTime: true }
 				]
 			},
 			{
@@ -409,7 +484,7 @@
 				group: '💧 Otros',
 				items: [
 					{ id: 'pump', icon: '⚙️', name: 'Bomba de Agua', watts: [300, 500, 800], showTime: true },
-					{ id: 'fan2', icon: '🌬️', name: 'Extractor de Aire', watts: [25, 40, 60], showTime: true }
+					{ id: 'fan2', icon: '🌬️', name: 'Extractor', watts: [25, 40, 60], showTime: true }
 				]
 			}
 		];
@@ -432,8 +507,18 @@
 			powerAvailable: document.getElementById('powerAvailable'),
 			timeEstimate: document.getElementById('timeEstimate'),
 			status: document.getElementById('status'),
-			powerBar: document.getElementById('powerBar')
+			powerBar: document.getElementById('powerBar'),
+			toast: document.getElementById('toast')
 		};
+
+		// Toast notification
+		function showToast(message) {
+			el.toast.textContent = message;
+			el.toast.classList.add('show');
+			setTimeout(() => {
+				el.toast.classList.remove('show');
+			}, 2000);
+		}
 
 		// Cargar estado
 		function loadState() {
@@ -454,6 +539,7 @@
 			const next = current === 'light' ? 'dark' : 'light';
 			document.documentElement.setAttribute('data-theme', next);
 			localStorage.setItem('theme', next);
+			showToast(next === 'dark' ? '🌙 Modo oscuro' : '☀️ Modo claro');
 		}
 
 		function loadTheme() {
@@ -486,24 +572,31 @@
 
 					const timeInput = item.showTime ? `
 						<input type="number" min="0" max="24" step="0.5" value="${config.hours || 24}" 
-							   data-id="${item.id}" class="time-input" placeholder="Horas/día" 
-							   title="Horas de uso al día" />
-					` : '<div></div>';
+							   data-id="${item.id}" class="time-input time-full" placeholder="Horas/día" 
+							   inputmode="decimal" title="Horas de uso al día" />
+					` : '';
 
 					row.innerHTML = `
-						<div class="device-icon">${item.icon}</div>
-						<div class="device-info">
-							<div class="device-name">${item.name}</div>
-							<div class="device-power">Bajo: ${item.watts[0]}W | Medio: ${item.watts[1]}W | Alto: ${item.watts[2]}W</div>
+						<div class="device-header">
+							<div class="device-icon">${item.icon}</div>
+							<div class="device-info">
+								<div class="device-name">${item.name}</div>
+								<div class="device-power">${item.watts[0]}W · ${item.watts[1]}W · ${item.watts[2]}W</div>
+							</div>
+							<div class="device-total">${total} W</div>
 						</div>
-						<select data-id="${item.id}" class="level-select">
-							<option value="0" ${config.level === 0 ? 'selected' : ''}>Bajo (${item.watts[0]}W)</option>
-							<option value="1" ${config.level === 1 ? 'selected' : ''}>Medio (${item.watts[1]}W)</option>
-							<option value="2" ${config.level === 2 ? 'selected' : ''}>Alto (${item.watts[2]}W)</option>
-						</select>
-						<input type="number" min="0" value="${config.qty}" data-id="${item.id}" class="qty-input" placeholder="Cantidad" />
-						${timeInput}
-						<div class="device-total">${total} W</div>
+						<div class="device-controls">
+							<select data-id="${item.id}" class="level-select">
+								<option value="0" ${config.level === 0 ? 'selected' : ''}>Bajo (${item.watts[0]}W)</option>
+								<option value="1" ${config.level === 1 ? 'selected' : ''}>Medio (${item.watts[1]}W)</option>
+								<option value="2" ${config.level === 2 ? 'selected' : ''}>Alto (${item.watts[2]}W)</option>
+							</select>
+							<div class="control-row">
+								<input type="number" min="0" value="${config.qty}" data-id="${item.id}" 
+									   class="qty-input" placeholder="Cantidad" inputmode="numeric" />
+								${timeInput}
+							</div>
+						</div>
 					`;
 
 					listDiv.appendChild(row);
@@ -513,7 +606,7 @@
 				el.container.appendChild(groupDiv);
 			});
 
-			// Agregar event listeners
+			// Event listeners
 			document.querySelectorAll('.level-select').forEach(sel => {
 				sel.addEventListener('change', e => {
 					const id = e.target.dataset.id;
@@ -555,9 +648,8 @@
 
 			const maxPower = state.plantPower * (state.safety / 100);
 			let totalUsed = 0;
-			let weightedEnergyPerDay = 0; // Energía ponderada por horas de uso
+			let weightedEnergyPerDay = 0;
 
-			// Calcular total usado y energía diaria ponderada
 			Object.keys(state.devices).forEach(id => {
 				const device = DEVICES.flatMap(g => g.items).find(d => d.id === id);
 				if (device) {
@@ -568,7 +660,6 @@
 					
 					totalUsed += instantPower;
 					
-					// Usar el tiempo de uso configurado
 					const hoursPerDay = config.hours !== undefined ? config.hours : 24;
 					weightedEnergyPerDay += instantPower * hoursPerDay;
 				}
@@ -589,29 +680,27 @@
 				el.status.className = 'summary-value danger';
 			} else if (percentage > 85) {
 				el.powerBar.classList.add('warn');
-				el.status.textContent = '⚠️ Cerca del límite';
+				el.status.textContent = '⚠️ Cerca';
 				el.status.className = 'summary-value warn';
 			} else {
-				el.status.textContent = '✅ Todo bien';
+				el.status.textContent = '✅ OK';
 				el.status.className = 'summary-value ok';
 			}
 
-			// Tiempo estimado mejorado
+			// Tiempo estimado
 			if (state.energyWh > 0 && weightedEnergyPerDay > 0) {
 				const days = state.energyWh / weightedEnergyPerDay;
 				const hours = days * 24;
 				
 				if (hours < 1) {
-					el.timeEstimate.textContent = Math.round(hours * 60) + ' minutos';
+					el.timeEstimate.textContent = Math.round(hours * 60) + ' min';
 				} else if (hours < 48) {
-					el.timeEstimate.textContent = hours.toFixed(1) + ' horas';
+					el.timeEstimate.textContent = hours.toFixed(1) + ' h';
 				} else {
 					el.timeEstimate.textContent = days.toFixed(1) + ' días';
 				}
-			} else if (state.energyWh > 0 && totalUsed === 0) {
-				el.timeEstimate.textContent = '-- horas';
 			} else {
-				el.timeEstimate.textContent = '-- horas';
+				el.timeEstimate.textContent = '-- h';
 			}
 
 			saveState();
@@ -627,6 +716,7 @@
 					'router': { level: 1, qty: 1, hours: 24 },
 					'phone': { level: 1, qty: 2, hours: 3 }
 				};
+				showToast('✅ Perfil Básico aplicado');
 			} else if (type === 'home') {
 				state.devices = {
 					'led': { level: 1, qty: 8, hours: 8 },
@@ -638,6 +728,9 @@
 					'micro': { level: 1, qty: 1, hours: 0.5 },
 					'coffee': { level: 1, qty: 1, hours: 0.5 }
 				};
+				showToast('✅ Perfil Casa aplicado');
+			} else {
+				showToast('🧹 Todo limpio');
 			}
 			
 			saveState();
@@ -648,7 +741,7 @@
 		// Event listeners
 		document.getElementById('themeBtn').addEventListener('click', toggleTheme);
 		document.getElementById('resetBtn').addEventListener('click', () => {
-			if (confirm('¿Quieres reiniciar todo?')) {
+			if (confirm('¿Reiniciar todo?')) {
 				state = { plantPower: 600, energyWh: 0, safety: 80, devices: {} };
 				el.plantPower.value = 600;
 				el.energyWh.value = 0;
@@ -656,6 +749,7 @@
 				saveState();
 				renderDevices();
 				calculate();
+				showToast('🔄 Reiniciado');
 			}
 		});
 		document.getElementById('profileBasic').addEventListener('click', () => applyProfile('basic'));
@@ -665,6 +759,16 @@
 		el.plantPower.addEventListener('input', calculate);
 		el.energyWh.addEventListener('input', calculate);
 		el.safety.addEventListener('input', calculate);
+
+		// Prevenir zoom en doble tap (iOS)
+		let lastTouchEnd = 0;
+		document.addEventListener('touchend', (e) => {
+			const now = Date.now();
+			if (now - lastTouchEnd <= 300) {
+				e.preventDefault();
+			}
+			lastTouchEnd = now;
+		}, false);
 
 		// Inicializar
 		loadTheme();
