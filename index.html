@@ -9,28 +9,33 @@
 	<meta name="description" content="Calcula qué equipos puedes conectar a tu planta eléctrica" />
 	<style>
 		:root {
-			--bg: #f5f5f5;
-			--surface: #ffffff;
-			--text: #222222;
-			--muted: #666666;
-			--primary: #4CAF50;
-			--danger: #f44336;
-			--warn: #ff9800;
-			--ok: #4CAF50;
-			--border: #dddddd;
-			--shadow: 0 2px 8px rgba(0,0,0,.1);
-		}
-		[data-theme="dark"] {
-			--bg: #1a1a1a;
-			--surface: #2d2d2d;
+			--bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+			--glass-bg: rgba(255, 255, 255, 0.05);
+			--glass-border: rgba(255, 255, 255, 0.1);
+			--glass-highlight: rgba(255, 255, 255, 0.15);
 			--text: #ffffff;
-			--muted: #aaaaaa;
-			--primary: #66bb6a;
-			--danger: #ef5350;
-			--warn: #ffa726;
-			--ok: #66bb6a;
-			--border: #444444;
-			--shadow: 0 2px 8px rgba(0,0,0,.5);
+			--text-muted: rgba(255, 255, 255, 0.6);
+			--primary: #00f2ff;
+			--primary-glow: 0 0 15px rgba(0, 242, 255, 0.5);
+			--danger: #ff0055;
+			--warn: #ffcc00;
+			--ok: #00ff9d;
+			--shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+			--radius: 16px;
+		}
+		[data-theme="light"] {
+			--bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+			--glass-bg: rgba(255, 255, 255, 0.6);
+			--glass-border: rgba(255, 255, 255, 0.4);
+			--glass-highlight: rgba(255, 255, 255, 0.8);
+			--text: #2d3436;
+			--text-muted: rgba(45, 52, 54, 0.6);
+			--primary: #6c5ce7;
+			--primary-glow: 0 0 15px rgba(108, 92, 231, 0.3);
+			--danger: #ff7675;
+			--warn: #fdcb6e;
+			--ok: #00b894;
+			--shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
 		}
 
 		* { 
@@ -41,284 +46,343 @@
 		}
 		
 		body {
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-			background: var(--bg);
+			font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+			background: var(--bg-gradient);
+			background-attachment: fixed;
 			color: var(--text);
-			line-height: 1.5;
-			padding-bottom: 160px;
+			line-height: 1.6;
+			padding-bottom: 180px;
+			min-height: 100vh;
 			overflow-x: hidden;
 		}
 
-		/* Header optimizado para móvil */
+		/* Background Orbs */
+		.orb {
+			position: fixed;
+			border-radius: 50%;
+			filter: blur(80px);
+			z-index: -1;
+			animation: float 10s infinite ease-in-out alternate;
+		}
+		.orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: var(--primary); opacity: 0.2; }
+		.orb-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: var(--danger); opacity: 0.15; animation-delay: -5s; }
+
+		@keyframes float {
+			0% { transform: translate(0, 0); }
+			100% { transform: translate(30px, 50px); }
+		}
+
+		/* Header */
 		header {
-			background: var(--surface);
-			border-bottom: 2px solid var(--border);
-			padding: 12px 15px;
+			background: rgba(255, 255, 255, 0.02);
+			backdrop-filter: blur(16px);
+			-webkit-backdrop-filter: blur(16px);
+			border-bottom: 1px solid var(--glass-border);
+			padding: 15px 20px;
 			position: sticky;
 			top: 0;
 			z-index: 100;
-			box-shadow: var(--shadow);
 		}
 		.header-content {
 			display: flex;
 			align-items: center;
-			gap: 10px;
+			gap: 15px;
+			max-width: 800px;
+			margin: 0 auto;
 		}
 		.title {
-			font-size: 18px;
-			font-weight: bold;
+			font-size: 20px;
+			font-weight: 700;
 			flex: 1;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
+			background: linear-gradient(to right, var(--primary), var(--ok));
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+			letter-spacing: 0.5px;
 		}
 		.btn {
-			padding: 10px 14px;
-			border: 2px solid var(--border);
-			background: var(--surface);
+			padding: 10px 16px;
+			border: 1px solid var(--glass-border);
+			background: var(--glass-bg);
 			color: var(--text);
-			border-radius: 8px;
+			border-radius: 12px;
 			cursor: pointer;
-			font-size: 16px;
-			font-weight: 500;
-			transition: all 0.2s;
-			white-space: nowrap;
-			min-height: 44px; /* Tamaño mínimo táctil iOS */
+			font-size: 18px;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			backdrop-filter: blur(4px);
 		}
-		.btn:active { 
-			transform: scale(0.95); 
-			opacity: 0.8;
+		.btn:hover {
+			background: var(--glass-highlight);
+			transform: translateY(-2px);
+			box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 		}
-		.btn.primary { 
-			background: var(--primary); 
-			color: white; 
-			border-color: var(--primary); 
+		.btn:active { transform: scale(0.95); }
+		.btn.primary {
+			background: var(--primary);
+			color: #000;
+			border: none;
+			font-weight: 600;
+			box-shadow: var(--primary-glow);
+		}
+		.btn.primary:hover {
+			filter: brightness(1.1);
 		}
 
-		/* Main con padding optimizado */
+		/* Main */
 		main {
-			padding: 15px;
+			padding: 20px;
+			max-width: 800px;
+			margin: 0 auto;
 		}
 		.card {
-			background: var(--surface);
-			border: 2px solid var(--border);
-			border-radius: 12px;
-			padding: 15px;
-			margin-bottom: 15px;
+			background: var(--glass-bg);
+			backdrop-filter: blur(16px);
+			-webkit-backdrop-filter: blur(16px);
+			border: 1px solid var(--glass-border);
+			border-radius: var(--radius);
+			padding: 20px;
+			margin-bottom: 20px;
 			box-shadow: var(--shadow);
+			transition: transform 0.3s;
+		}
+		.card:hover {
+			border-color: var(--primary);
 		}
 		.card-title {
-			font-size: 17px;
-			font-weight: bold;
-			margin-bottom: 12px;
+			font-size: 18px;
+			font-weight: 700;
+			margin-bottom: 15px;
 			display: flex;
 			align-items: center;
-			gap: 8px;
+			gap: 10px;
+			color: var(--primary);
+			text-transform: uppercase;
+			letter-spacing: 1px;
 		}
-		.card-title .emoji { font-size: 22px; }
 
-		/* Grid para móvil */
+		/* Inputs */
 		.grid {
-			display: flex;
-			flex-direction: column;
-			gap: 12px;
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 15px;
 		}
 		.field {
 			display: flex;
 			flex-direction: column;
-			gap: 6px;
+			gap: 8px;
 		}
 		.field label {
+			font-size: 14px;
 			font-weight: 600;
-			font-size: 15px;
-			color: var(--text);
+			color: var(--text-muted);
 		}
-		.field .help {
-			font-size: 13px;
-			color: var(--muted);
-			line-height: 1.4;
-		}
-		.field input, .field select {
-			padding: 14px;
-			border: 2px solid var(--border);
-			border-radius: 10px;
-			background: var(--bg);
+		input, select {
+			padding: 12px 16px;
+			border: 1px solid var(--glass-border);
+			border-radius: 12px;
+			background-color: rgba(0, 0, 0, 0.2);
 			color: var(--text);
 			font-size: 16px;
 			width: 100%;
-			min-height: 48px; /* Tamaño táctil */
+			transition: all 0.3s;
+			font-family: inherit;
 		}
-		.field input:focus, .field select:focus {
+		select {
+			appearance: none;
+			-webkit-appearance: none;
+			background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+			background-repeat: no-repeat;
+			background-position: right 1rem center;
+			background-size: 1em;
+			padding-right: 2.5rem;
+		}
+		[data-theme="light"] input, 
+		[data-theme="light"] select {
+			background-color: rgba(255, 255, 255, 0.5);
+		}
+		[data-theme="light"] select {
+			background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232d3436' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+		}
+		input:focus, select:focus {
 			outline: none;
 			border-color: var(--primary);
+			box-shadow: var(--primary-glow);
+			background-color: rgba(0, 0, 0, 0.3);
+		}
+		.field .help {
+			font-size: 12px;
+			color: var(--text-muted);
 		}
 
-		/* Perfiles en columna para móvil */
+		/* Profiles */
 		.profiles {
-			display: flex;
-			flex-direction: column;
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 			gap: 10px;
 		}
 		.profiles .btn {
+			font-size: 14px;
 			width: 100%;
-		}
-
-		/* Dispositivos optimizados para móvil */
-		.device-group {
-			margin-bottom: 20px;
-		}
-		.group-title {
-			font-size: 16px;
-			font-weight: bold;
-			margin-bottom: 10px;
-			padding: 12px;
-			background: var(--bg);
-			border-radius: 10px;
 			display: flex;
 			align-items: center;
-			gap: 8px;
+			justify-content: center;
+			gap: 6px;
+		}
+
+		/* Devices */
+		.device-group { margin-bottom: 25px; }
+		.group-title {
+			font-size: 16px;
+			font-weight: 600;
+			margin-bottom: 12px;
+			padding: 8px 12px;
+			background: rgba(255, 255, 255, 0.05);
+			border-radius: 8px;
+			display: inline-block;
+			color: var(--text);
 		}
 		.device-list {
 			display: flex;
 			flex-direction: column;
-			gap: 10px;
+			gap: 12px;
 		}
 		.device-row {
-			background: var(--surface);
-			border: 2px solid var(--border);
+			background: rgba(255, 255, 255, 0.03);
+			border: 1px solid var(--glass-border);
 			border-radius: 12px;
-			padding: 12px;
-			transition: all 0.2s;
+			padding: 15px;
+			transition: all 0.3s;
 		}
-		.device-row:active {
-			transform: scale(0.98);
-			border-color: var(--primary);
+		.device-row:hover {
+			background: rgba(255, 255, 255, 0.08);
+			transform: translateX(5px);
 		}
-		
 		.device-header {
 			display: flex;
 			align-items: center;
-			gap: 12px;
-			margin-bottom: 10px;
+			gap: 15px;
+			margin-bottom: 12px;
 		}
 		.device-icon {
-			font-size: 32px;
-			min-width: 40px;
-			text-align: center;
+			font-size: 28px;
+			width: 48px;
+			height: 48px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: rgba(255, 255, 255, 0.1);
+			border-radius: 50%;
 		}
-		.device-info {
-			flex: 1;
-			min-width: 0;
-		}
+		.device-info { flex: 1; }
 		.device-name {
 			font-weight: 600;
-			font-size: 15px;
-			margin-bottom: 2px;
+			font-size: 16px;
+			margin-bottom: 4px;
 		}
 		.device-power {
 			font-size: 12px;
-			color: var(--muted);
-			line-height: 1.3;
+			color: var(--text-muted);
 		}
 		.device-total {
-			font-weight: bold;
+			font-weight: 700;
 			color: var(--primary);
-			font-size: 16px;
-			white-space: nowrap;
+			font-size: 18px;
+			text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
 		}
-		
 		.device-controls {
 			display: flex;
-			flex-direction: column;
-			gap: 8px;
+			flex-wrap: wrap;
+			gap: 10px;
 		}
-		.device-row select, 
-		.device-row input {
-			padding: 12px;
-			border: 2px solid var(--border);
-			border-radius: 8px;
-			background: var(--bg);
-			color: var(--text);
-			font-size: 15px;
-			width: 100%;
-			min-height: 44px;
+		.device-controls > select {
+			flex: 1 1 140px;
+			min-width: 0;
 		}
-		
 		.control-row {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 8px;
+			flex: 2 1 200px;
+			display: flex;
+			gap: 10px;
 		}
-		
-		.time-full {
-			grid-column: 1 / -1;
+		.control-row > input {
+			flex: 1;
+			min-width: 80px;
 		}
 
-		/* Footer optimizado para móvil */
+		/* Footer */
 		footer {
 			position: fixed;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			background: var(--surface);
-			border-top: 3px solid var(--primary);
-			padding: 12px 15px;
-			box-shadow: 0 -2px 10px rgba(0,0,0,.2);
-			max-height: 160px;
-			overflow-y: auto;
+			bottom: 20px;
+			left: 20px;
+			right: 20px;
+			max-width: 760px;
+			margin: 0 auto;
+			background: rgba(20, 20, 30, 0.85);
+			backdrop-filter: blur(20px);
+			-webkit-backdrop-filter: blur(20px);
+			border: 1px solid var(--glass-border);
+			border-radius: 20px;
+			padding: 15px 25px;
+			box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+			z-index: 200;
+		}
+		[data-theme="light"] footer {
+			background: rgba(255, 255, 255, 0.85);
 		}
 		.footer-content {
 			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 12px;
+			grid-template-columns: 1.5fr 1fr 1fr 1fr;
+			gap: 20px;
+			align-items: center;
 		}
-		.summary-item {
-			display: flex;
-			flex-direction: column;
-			gap: 4px;
+		@media (max-width: 600px) {
+			.footer-content { grid-template-columns: 1fr 1fr; gap: 15px; }
 		}
+		.summary-item { display: flex; flex-direction: column; gap: 2px; }
 		.summary-label {
-			font-size: 11px;
-			color: var(--muted);
-			font-weight: 600;
+			font-size: 10px;
+			color: var(--text-muted);
 			text-transform: uppercase;
-			letter-spacing: 0.5px;
+			letter-spacing: 1px;
+			font-weight: 700;
 		}
 		.summary-value {
-			font-size: 18px;
-			font-weight: bold;
-			line-height: 1.2;
+			font-size: 20px;
+			font-weight: 700;
 		}
-		.summary-value.ok { color: var(--ok); }
-		.summary-value.warn { color: var(--warn); }
-		.summary-value.danger { color: var(--danger); }
-		
+		.summary-value.ok { color: var(--ok); text-shadow: 0 0 10px rgba(0, 255, 157, 0.3); }
+		.summary-value.warn { color: var(--warn); text-shadow: 0 0 10px rgba(255, 204, 0, 0.3); }
+		.summary-value.danger { color: var(--danger); text-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
+
 		.progress-bar {
-			height: 8px;
-			background: var(--border);
-			border-radius: 20px;
+			height: 6px;
+			background: rgba(255, 255, 255, 0.1);
+			border-radius: 10px;
 			overflow: hidden;
-			margin-top: 4px;
+			margin-top: 5px;
 		}
 		.progress-fill {
 			height: 100%;
 			background: var(--ok);
-			transition: width 0.3s, background 0.3s;
+			box-shadow: 0 0 10px var(--ok);
+			transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
 		}
-		.progress-fill.warn { background: var(--warn); }
-		.progress-fill.danger { background: var(--danger); }
+		.progress-fill.warn { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+		.progress-fill.danger { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
 
-		/* Mensajes toast para feedback */
+		/* Toast */
 		.toast {
 			position: fixed;
-			top: 70px;
+			top: 90px;
 			left: 50%;
 			transform: translateX(-50%);
-			background: var(--surface);
-			border: 2px solid var(--primary);
-			padding: 12px 20px;
-			border-radius: 10px;
-			box-shadow: var(--shadow);
+			background: rgba(0, 0, 0, 0.8);
+			color: white;
+			border: 1px solid var(--primary);
+			box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+			backdrop-filter: blur(10px);
+			border-radius: 50px;
+			padding: 12px 24px;
+			font-weight: 600;
 			z-index: 200;
 			opacity: 0;
 			transition: opacity 0.3s;
@@ -328,30 +392,64 @@
 			opacity: 1;
 		}
 
-		/* Animaciones suaves */
+		/* Animaciones */
 		@keyframes slideIn {
-			from {
-				opacity: 0;
-				transform: translateY(10px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
+			from { opacity: 0; transform: translateY(20px); }
+			to { opacity: 1; transform: translateY(0); }
 		}
-		.device-row {
-			animation: slideIn 0.3s ease-out;
+		.device-row { animation: slideIn 0.4s ease-out backwards; }
+		
+		.empty-state {
+			text-align: center;
+			padding: 30px;
+			color: var(--text-muted);
+			font-style: italic;
 		}
-
-		/* Mejoras de accesibilidad táctil */
-		input[type="number"]::-webkit-inner-spin-button,
-		input[type="number"]::-webkit-outer-spin-button {
-			opacity: 1;
-			height: 40px;
+		.delete-btn {
+			background: rgba(255, 0, 85, 0.1);
+			color: var(--danger);
+			border: 1px solid var(--danger);
+			width: 36px;
+			height: 36px;
+			border-radius: 8px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+		.delete-btn:hover {
+			background: var(--danger);
+			color: white;
+		}
+		.compact-row {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px;
+		}
+		.compact-info {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+		}
+		.compact-name { font-weight: 600; font-size: 15px; }
+		.compact-details { font-size: 12px; color: var(--text-muted); }
+		.compact-controls {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+		.compact-input {
+			width: 60px !important;
+			padding: 8px !important;
+			text-align: center;
 		}
 	</style>
 </head>
 <body>
+	<div class="orb orb-1"></div>
+	<div class="orb orb-2"></div>
 	<header>
 		<div class="header-content">
 			<div class="title">⚡ Calculadora de Planta</div>
@@ -399,13 +497,46 @@
 			</div>
 		</div>
 
-		<!-- Equipos -->
+		<!-- Agregar Equipo -->
+		<div class="card">
+			<div class="card-title">
+				<span class="emoji">➕</span>
+				Agregar Equipo
+			</div>
+			<div class="add-form">
+				<div class="field">
+					<label>Tipo de Equipo</label>
+					<select id="newDeviceType">
+						<option value="">Seleccionar...</option>
+						<option value="custom">✨ Personalizado</option>
+					</select>
+				</div>
+				<div class="grid" style="margin-top: 15px;">
+					<div class="field">
+						<label>Nombre</label>
+						<input type="text" id="newDeviceName" placeholder="Ej. TV Sala" />
+					</div>
+					<div class="field">
+						<label>Potencia (W)</label>
+						<input type="number" id="newDeviceWatts" placeholder="0" />
+					</div>
+					<div class="field">
+						<label>&nbsp;</label>
+						<button id="addDeviceBtn" class="btn primary" style="width: 100%">Agregar</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Lista de Equipos -->
 		<div class="card">
 			<div class="card-title">
 				<span class="emoji">📋</span>
-				Selecciona tus Equipos
+				Mis Equipos
 			</div>
-			<div id="deviceContainer"></div>
+			<div id="deviceList" class="device-list">
+				<div class="empty-state">No hay equipos agregados</div>
+			</div>
 		</div>
 	</main>
 
@@ -494,7 +625,7 @@
 			plantPower: 600,
 			energyWh: 0,
 			safety: 80,
-			devices: {}
+			devices: [] // Array of objects: { id, name, watts, qty, hours }
 		};
 
 		// Elementos
@@ -502,7 +633,11 @@
 			plantPower: document.getElementById('plantPower'),
 			energyWh: document.getElementById('energyWh'),
 			safety: document.getElementById('safety'),
-			container: document.getElementById('deviceContainer'),
+			deviceList: document.getElementById('deviceList'),
+			newDeviceType: document.getElementById('newDeviceType'),
+			newDeviceName: document.getElementById('newDeviceName'),
+			newDeviceWatts: document.getElementById('newDeviceWatts'),
+			addDeviceBtn: document.getElementById('addDeviceBtn'),
 			powerUsed: document.getElementById('powerUsed'),
 			powerAvailable: document.getElementById('powerAvailable'),
 			timeEstimate: document.getElementById('timeEstimate'),
@@ -523,14 +658,18 @@
 		// Cargar estado
 		function loadState() {
 			try {
-				const saved = localStorage.getItem('plantCalc');
+				const saved = localStorage.getItem('plantCalc_v2');
 				if (saved) state = JSON.parse(saved);
-			} catch (e) {}
+				// Migration from old version if needed, or just reset
+				if (!Array.isArray(state.devices)) state.devices = [];
+			} catch (e) {
+				state.devices = [];
+			}
 		}
 
 		// Guardar estado
 		function saveState() {
-			localStorage.setItem('plantCalc', JSON.stringify(state));
+			localStorage.setItem('plantCalc_v2', JSON.stringify(state));
 		}
 
 		// Tema
@@ -547,96 +686,126 @@
 			document.documentElement.setAttribute('data-theme', theme);
 		}
 
-		// Renderizar dispositivos
-		function renderDevices() {
-			el.container.innerHTML = '';
+		// Inicializar Select
+		function initSelect() {
 			DEVICES.forEach(group => {
-				const groupDiv = document.createElement('div');
-				groupDiv.className = 'device-group';
-				
-				const groupTitle = document.createElement('div');
-				groupTitle.className = 'group-title';
-				groupTitle.textContent = group.group;
-				groupDiv.appendChild(groupTitle);
-
-				const listDiv = document.createElement('div');
-				listDiv.className = 'device-list';
-
+				const optgroup = document.createElement('optgroup');
+				optgroup.label = group.group;
 				group.items.forEach(item => {
-					const row = document.createElement('div');
-					row.className = 'device-row';
-					
-					const config = state.devices[item.id] || { level: 1, qty: 0, hours: 24 };
-					const currentWatts = item.watts[config.level];
-					const total = currentWatts * config.qty;
-
-					const timeInput = item.showTime ? `
-						<input type="number" min="0" max="24" step="0.5" value="${config.hours || 24}" 
-							   data-id="${item.id}" class="time-input time-full" placeholder="Horas/día" 
-							   inputmode="decimal" title="Horas de uso al día" />
-					` : '';
-
-					row.innerHTML = `
-						<div class="device-header">
-							<div class="device-icon">${item.icon}</div>
-							<div class="device-info">
-								<div class="device-name">${item.name}</div>
-								<div class="device-power">${item.watts[0]}W · ${item.watts[1]}W · ${item.watts[2]}W</div>
-							</div>
-							<div class="device-total">${total} W</div>
-						</div>
-						<div class="device-controls">
-							<select data-id="${item.id}" class="level-select">
-								<option value="0" ${config.level === 0 ? 'selected' : ''}>Bajo (${item.watts[0]}W)</option>
-								<option value="1" ${config.level === 1 ? 'selected' : ''}>Medio (${item.watts[1]}W)</option>
-								<option value="2" ${config.level === 2 ? 'selected' : ''}>Alto (${item.watts[2]}W)</option>
-							</select>
-							<div class="control-row">
-								<input type="number" min="0" value="${config.qty}" data-id="${item.id}" 
-									   class="qty-input" placeholder="Cantidad" inputmode="numeric" />
-								${timeInput}
-							</div>
-						</div>
-					`;
-
-					listDiv.appendChild(row);
+					const option = document.createElement('option');
+					option.value = item.id;
+					option.textContent = `${item.icon} ${item.name}`;
+					option.dataset.watts = item.watts[1]; // Use medium value as default
+					option.dataset.name = item.name;
+					optgroup.appendChild(option);
 				});
-
-				groupDiv.appendChild(listDiv);
-				el.container.appendChild(groupDiv);
+				el.newDeviceType.appendChild(optgroup);
 			});
 
-			// Event listeners
-			document.querySelectorAll('.level-select').forEach(sel => {
-				sel.addEventListener('change', e => {
-					const id = e.target.dataset.id;
-					if (!state.devices[id]) state.devices[id] = { level: 1, qty: 0, hours: 24 };
-					state.devices[id].level = parseInt(e.target.value);
-					saveState();
-					calculate();
-					renderDevices();
-				});
+			el.newDeviceType.addEventListener('change', (e) => {
+				const selected = e.target.selectedOptions[0];
+				if (selected && selected.value !== 'custom' && selected.value !== '') {
+					el.newDeviceName.value = selected.dataset.name;
+					el.newDeviceWatts.value = selected.dataset.watts;
+				} else if (selected.value === 'custom') {
+					el.newDeviceName.value = '';
+					el.newDeviceWatts.value = '';
+					el.newDeviceName.focus();
+				}
+			});
+		}
+
+		// Agregar Dispositivo
+		function addDevice() {
+			const name = el.newDeviceName.value.trim();
+			const watts = parseInt(el.newDeviceWatts.value);
+
+			if (!name || isNaN(watts) || watts <= 0) {
+				showToast('⚠️ Ingresa nombre y watts válidos');
+				return;
+			}
+
+			const newDevice = {
+				id: Date.now().toString(),
+				name: name,
+				watts: watts,
+				qty: 1,
+				hours: 4
+			};
+
+			state.devices.push(newDevice);
+			saveState();
+			renderList();
+			calculate();
+			showToast('✅ Equipo agregado');
+
+			// Reset form
+			el.newDeviceName.value = '';
+			el.newDeviceWatts.value = '';
+			el.newDeviceType.value = '';
+		}
+
+		// Eliminar Dispositivo
+		function removeDevice(id) {
+			state.devices = state.devices.filter(d => d.id !== id);
+			saveState();
+			renderList();
+			calculate();
+		}
+
+		// Actualizar Dispositivo
+		function updateDevice(id, field, value) {
+			const device = state.devices.find(d => d.id === id);
+			if (device) {
+				device[field] = value;
+				saveState();
+				calculate();
+				// No re-render to keep focus
+			}
+		}
+
+		// Renderizar Lista
+		function renderList() {
+			el.deviceList.innerHTML = '';
+			
+			if (state.devices.length === 0) {
+				el.deviceList.innerHTML = '<div class="empty-state">No hay equipos agregados. ¡Agrega uno arriba! 👆</div>';
+				return;
+			}
+
+			state.devices.forEach(device => {
+				const row = document.createElement('div');
+				row.className = 'device-row compact-row';
+				
+				row.innerHTML = `
+					<div class="compact-info">
+						<div class="compact-name">${device.name}</div>
+						<div class="compact-details">${device.watts}W c/u</div>
+					</div>
+					<div class="compact-controls">
+						<div style="text-align: center">
+							<label style="font-size: 10px; display: block; color: var(--text-muted)">Cant.</label>
+							<input type="number" min="1" value="${device.qty}" class="compact-input qty-input" data-id="${device.id}">
+						</div>
+						<div style="text-align: center">
+							<label style="font-size: 10px; display: block; color: var(--text-muted)">Horas</label>
+							<input type="number" min="0" max="24" step="0.5" value="${device.hours}" class="compact-input hours-input" data-id="${device.id}">
+						</div>
+						<button class="delete-btn" data-id="${device.id}">🗑️</button>
+					</div>
+				`;
+				el.deviceList.appendChild(row);
 			});
 
+			// Listeners
 			document.querySelectorAll('.qty-input').forEach(inp => {
-				inp.addEventListener('input', e => {
-					const id = e.target.dataset.id;
-					if (!state.devices[id]) state.devices[id] = { level: 1, qty: 0, hours: 24 };
-					state.devices[id].qty = parseInt(e.target.value) || 0;
-					saveState();
-					calculate();
-					renderDevices();
-				});
+				inp.addEventListener('input', (e) => updateDevice(e.target.dataset.id, 'qty', parseFloat(e.target.value) || 0));
 			});
-
-			document.querySelectorAll('.time-input').forEach(inp => {
-				inp.addEventListener('input', e => {
-					const id = e.target.dataset.id;
-					if (!state.devices[id]) state.devices[id] = { level: 1, qty: 0, hours: 24 };
-					state.devices[id].hours = parseFloat(e.target.value) || 24;
-					saveState();
-					calculate();
-				});
+			document.querySelectorAll('.hours-input').forEach(inp => {
+				inp.addEventListener('input', (e) => updateDevice(e.target.dataset.id, 'hours', parseFloat(e.target.value) || 0));
+			});
+			document.querySelectorAll('.delete-btn').forEach(btn => {
+				btn.addEventListener('click', (e) => removeDevice(e.target.closest('.delete-btn').dataset.id));
 			});
 		}
 
@@ -650,19 +819,10 @@
 			let totalUsed = 0;
 			let weightedEnergyPerDay = 0;
 
-			Object.keys(state.devices).forEach(id => {
-				const device = DEVICES.flatMap(g => g.items).find(d => d.id === id);
-				if (device) {
-					const config = state.devices[id];
-					const watts = device.watts[config.level];
-					const qty = config.qty || 0;
-					const instantPower = watts * qty;
-					
-					totalUsed += instantPower;
-					
-					const hoursPerDay = config.hours !== undefined ? config.hours : 24;
-					weightedEnergyPerDay += instantPower * hoursPerDay;
-				}
+			state.devices.forEach(device => {
+				const instantPower = device.watts * device.qty;
+				totalUsed += instantPower;
+				weightedEnergyPerDay += instantPower * device.hours;
 			});
 
 			// Actualizar UI
@@ -702,39 +862,43 @@
 			} else {
 				el.timeEstimate.textContent = '-- h';
 			}
-
-			saveState();
 		}
 
 		// Perfiles
 		function applyProfile(type) {
-			state.devices = {};
-			
+			if (type === 'clear') {
+				if(confirm('¿Borrar todos los equipos?')) {
+					state.devices = [];
+					saveState();
+					renderList();
+					calculate();
+					showToast('🧹 Todo limpio');
+				}
+				return;
+			}
+
+			let newDevices = [];
 			if (type === 'basic') {
-				state.devices = {
-					'led': { level: 1, qty: 5, hours: 8 },
-					'router': { level: 1, qty: 1, hours: 24 },
-					'phone': { level: 1, qty: 2, hours: 3 }
-				};
+				newDevices = [
+					{ id: Date.now() + '1', name: 'Bombillos LED', watts: 10, qty: 5, hours: 6 },
+					{ id: Date.now() + '2', name: 'Router WiFi', watts: 12, qty: 1, hours: 24 },
+					{ id: Date.now() + '3', name: 'Cargador Celular', watts: 15, qty: 2, hours: 4 }
+				];
 				showToast('✅ Perfil Básico aplicado');
 			} else if (type === 'home') {
-				state.devices = {
-					'led': { level: 1, qty: 8, hours: 8 },
-					'fridge': { level: 1, qty: 1, hours: 24 },
-					'tv': { level: 1, qty: 1, hours: 6 },
-					'laptop': { level: 1, qty: 2, hours: 8 },
-					'router': { level: 1, qty: 1, hours: 24 },
-					'fan': { level: 1, qty: 2, hours: 12 },
-					'micro': { level: 1, qty: 1, hours: 0.5 },
-					'coffee': { level: 1, qty: 1, hours: 0.5 }
-				};
+				newDevices = [
+					{ id: Date.now() + '1', name: 'Bombillos LED', watts: 10, qty: 8, hours: 6 },
+					{ id: Date.now() + '2', name: 'Nevera', watts: 150, qty: 1, hours: 24 },
+					{ id: Date.now() + '3', name: 'TV', watts: 100, qty: 1, hours: 4 },
+					{ id: Date.now() + '4', name: 'Ventilador', watts: 50, qty: 2, hours: 8 },
+					{ id: Date.now() + '5', name: 'Router WiFi', watts: 12, qty: 1, hours: 24 }
+				];
 				showToast('✅ Perfil Casa aplicado');
-			} else {
-				showToast('🧹 Todo limpio');
 			}
 			
+			state.devices = [...state.devices, ...newDevices];
 			saveState();
-			renderDevices();
+			renderList();
 			calculate();
 		}
 
@@ -742,12 +906,12 @@
 		document.getElementById('themeBtn').addEventListener('click', toggleTheme);
 		document.getElementById('resetBtn').addEventListener('click', () => {
 			if (confirm('¿Reiniciar todo?')) {
-				state = { plantPower: 600, energyWh: 0, safety: 80, devices: {} };
+				state = { plantPower: 600, energyWh: 0, safety: 80, devices: [] };
 				el.plantPower.value = 600;
 				el.energyWh.value = 0;
 				el.safety.value = 80;
 				saveState();
-				renderDevices();
+				renderList();
 				calculate();
 				showToast('🔄 Reiniciado');
 			}
@@ -755,6 +919,8 @@
 		document.getElementById('profileBasic').addEventListener('click', () => applyProfile('basic'));
 		document.getElementById('profileHome').addEventListener('click', () => applyProfile('home'));
 		document.getElementById('profileClear').addEventListener('click', () => applyProfile('clear'));
+		
+		el.addDeviceBtn.addEventListener('click', addDevice);
 
 		el.plantPower.addEventListener('input', calculate);
 		el.energyWh.addEventListener('input', calculate);
@@ -773,10 +939,11 @@
 		// Inicializar
 		loadTheme();
 		loadState();
+		initSelect();
 		el.plantPower.value = state.plantPower;
 		el.energyWh.value = state.energyWh;
 		el.safety.value = state.safety;
-		renderDevices();
+		renderList();
 		calculate();
 	</script>
 </body>
