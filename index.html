@@ -445,6 +445,51 @@
 			padding: 8px !important;
 			text-align: center;
 		}
+
+		/* Análisis */
+		.stats {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+			gap: 12px;
+			margin-bottom: 15px;
+		}
+		.stat {
+			background: rgba(255, 255, 255, 0.03);
+			border: 1px solid var(--glass-border);
+			border-radius: 12px;
+			padding: 12px;
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+		.stat-label {
+			font-size: 11px;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			color: var(--text-muted);
+			font-weight: 700;
+		}
+		.stat-value {
+			font-size: 20px;
+			font-weight: 700;
+			color: var(--primary);
+		}
+		.warn-banner {
+			background: rgba(255, 204, 0, 0.12);
+			border: 1px solid var(--warn);
+			color: var(--warn);
+			border-radius: 12px;
+			padding: 12px 14px;
+			font-size: 14px;
+			font-weight: 600;
+			line-height: 1.5;
+			margin-bottom: 12px;
+		}
+		.note {
+			font-size: 12px;
+			color: var(--text-muted);
+			line-height: 1.6;
+		}
 	</style>
 </head>
 <body>
@@ -493,6 +538,9 @@
 			<div class="profiles">
 				<button class="btn primary" id="profileBasic">🏠 Básico (Luces + Router)</button>
 				<button class="btn primary" id="profileHome">🏡 Casa (Nevera + Electrónicos)</button>
+				<button class="btn" id="profileOffice">💻 Oficina (Teletrabajo)</button>
+				<button class="btn" id="profileEmergency">🚨 Emergencia (Apagón)</button>
+				<button class="btn" id="profileKitchen">🍳 Cocina</button>
 				<button class="btn" id="profileClear">🧹 Limpiar Todo</button>
 			</div>
 		</div>
@@ -538,6 +586,22 @@
 				<div class="empty-state">No hay equipos agregados</div>
 			</div>
 		</div>
+
+		<!-- Análisis -->
+		<div class="card">
+			<div class="card-title">
+				<span class="emoji">📊</span>
+				Análisis
+			</div>
+			<div class="stats">
+				<div class="stat"><span class="stat-label">Consumo diario</span><span class="stat-value" id="dailyEnergy">0 kWh</span></div>
+				<div class="stat"><span class="stat-label">Pico de arranque</span><span class="stat-value" id="surgeTotal">0 W</span></div>
+				<div class="stat"><span class="stat-label">Autonomía (uso diario)</span><span class="stat-value" id="autonomyDaily">--</span></div>
+				<div class="stat"><span class="stat-label">Autonomía continua</span><span class="stat-value" id="autonomyCont">--</span></div>
+			</div>
+			<div id="surgeWarn" class="warn-banner" style="display:none"></div>
+			<p class="note">Valores <strong>típicos reales</strong> (potencia en marcha). Los equipos con motor —nevera, aire acondicionado, bombas, lavadora— consumen un <strong>pico de arranque</strong> 2-4× mayor durante 1-3 s. La planta debe cubrir ese pico, no solo la potencia en marcha. La <em>autonomía continua</em> asume todo encendido a la vez; la <em>de uso diario</em> usa las horas de uso de cada equipo.</p>
+		</div>
 	</main>
 
 	<footer>
@@ -567,55 +631,87 @@
 	<div class="toast" id="toast"></div>
 
 	<script>
-		// Datos de dispositivos
+		// Catálogo de equipos con valores típicos reales.
+		// watts: [mín, típico, máx] en vatios (potencia en marcha)
+		// surge: pico de arranque en vatios (0 = sin motor / sin pico relevante)
+		// hours: horas de uso típicas al día
 		const DEVICES = [
 			{
 				group: '💡 Iluminación',
 				items: [
-					{ id: 'led', icon: '💡', name: 'Bombillo LED', watts: [5, 10, 15], showTime: true },
-					{ id: 'tubo', icon: '🔦', name: 'Tubo LED', watts: [15, 20, 30], showTime: true },
-					{ id: 'foco', icon: '🌟', name: 'Foco Exterior', watts: [20, 30, 50], showTime: true }
+					{ id: 'led', icon: '💡', name: 'Bombillo LED', watts: [5, 9, 15], surge: 0, hours: 5 },
+					{ id: 'tubo', icon: '🔦', name: 'Tubo LED', watts: [12, 18, 30], surge: 0, hours: 6 },
+					{ id: 'foco', icon: '🌟', name: 'Foco exterior', watts: [20, 30, 50], surge: 0, hours: 8 },
+					{ id: 'lampara', icon: '🛋️', name: 'Lámpara de mesa', watts: [8, 12, 20], surge: 0, hours: 4 }
 				]
 			},
 			{
 				group: '🌡️ Clima',
 				items: [
-					{ id: 'fan', icon: '🌀', name: 'Ventilador', watts: [30, 50, 75], showTime: true },
-					{ id: 'ac', icon: '❄️', name: 'Aire Acondicionado', watts: [800, 1200, 1800], showTime: true }
+					{ id: 'fanpie', icon: '🌀', name: 'Ventilador de pie', watts: [30, 50, 75], surge: 0, hours: 8 },
+					{ id: 'fantecho', icon: '💨', name: 'Ventilador de techo', watts: [50, 70, 90], surge: 0, hours: 8 },
+					{ id: 'ac5000', icon: '❄️', name: 'Aire acond. ventana 5000 BTU', watts: [450, 500, 650], surge: 1500, hours: 8 },
+					{ id: 'ac9000', icon: '❄️', name: 'Aire acond. split 9000 BTU', watts: [800, 900, 1100], surge: 2700, hours: 8 },
+					{ id: 'ac12000', icon: '❄️', name: 'Aire acond. split 12000 BTU', watts: [1000, 1200, 1500], surge: 3600, hours: 8 },
+					{ id: 'calentador', icon: '🔥', name: 'Calentador eléctrico', watts: [1000, 1500, 2000], surge: 0, hours: 3 }
 				]
 			},
 			{
 				group: '🍳 Cocina',
 				items: [
-					{ id: 'fridge', icon: '🧊', name: 'Nevera', watts: [100, 150, 250], showTime: true },
-					{ id: 'micro', icon: '📦', name: 'Microondas', watts: [800, 1000, 1200], showTime: true },
-					{ id: 'coffee', icon: '☕', name: 'Cafetera', watts: [800, 1000, 1500], showTime: true },
-					{ id: 'blender', icon: '🥤', name: 'Licuadora', watts: [300, 500, 800], showTime: true }
+					{ id: 'fridge', icon: '🧊', name: 'Nevera / refrigerador', watts: [100, 150, 250], surge: 1200, hours: 8 },
+					{ id: 'freezer', icon: '🧊', name: 'Congelador (freezer)', watts: [150, 200, 350], surge: 1200, hours: 8 },
+					{ id: 'micro', icon: '📦', name: 'Microondas', watts: [800, 1100, 1400], surge: 0, hours: 0.5 },
+					{ id: 'coffee', icon: '☕', name: 'Cafetera', watts: [600, 900, 1200], surge: 0, hours: 0.5 },
+					{ id: 'kettle', icon: '🫖', name: 'Hervidor eléctrico', watts: [1200, 1500, 2000], surge: 0, hours: 0.3 },
+					{ id: 'toaster', icon: '🍞', name: 'Tostadora', watts: [700, 1000, 1400], surge: 0, hours: 0.2 },
+					{ id: 'blender', icon: '🥤', name: 'Licuadora', watts: [300, 400, 700], surge: 800, hours: 0.2 },
+					{ id: 'rice', icon: '🍚', name: 'Arrocera', watts: [400, 700, 900], surge: 0, hours: 1 },
+					{ id: 'dishwasher', icon: '🍽️', name: 'Lavavajillas', watts: [1200, 1500, 1800], surge: 2000, hours: 1.5 }
 				]
 			},
 			{
 				group: '💻 Electrónicos',
 				items: [
-					{ id: 'tv', icon: '📺', name: 'Televisor', watts: [60, 100, 150], showTime: true },
-					{ id: 'laptop', icon: '💻', name: 'Laptop', watts: [45, 65, 90], showTime: true },
-					{ id: 'pc', icon: '🖥️', name: 'Computadora', watts: [150, 250, 400], showTime: true },
-					{ id: 'router', icon: '📡', name: 'Router WiFi', watts: [8, 12, 20], showTime: true },
-					{ id: 'phone', icon: '📱', name: 'Cargador', watts: [5, 10, 18], showTime: true }
+					{ id: 'tv', icon: '📺', name: 'Televisor LED 55"', watts: [60, 100, 150], surge: 0, hours: 4 },
+					{ id: 'laptop', icon: '💻', name: 'Laptop', watts: [45, 65, 90], surge: 0, hours: 6 },
+					{ id: 'pc', icon: '🖥️', name: 'PC de escritorio', watts: [150, 250, 400], surge: 0, hours: 5 },
+					{ id: 'monitor', icon: '🖥️', name: 'Monitor', watts: [20, 30, 50], surge: 0, hours: 6 },
+					{ id: 'router', icon: '📡', name: 'Router WiFi', watts: [6, 12, 20], surge: 0, hours: 24 },
+					{ id: 'phone', icon: '📱', name: 'Cargador de celular', watts: [5, 10, 25], surge: 0, hours: 3 },
+					{ id: 'console', icon: '🎮', name: 'Consola de videojuegos', watts: [90, 150, 250], surge: 0, hours: 2 },
+					{ id: 'printer', icon: '🖨️', name: 'Impresora', watts: [30, 50, 300], surge: 0, hours: 0.5 }
 				]
 			},
 			{
-				group: '🧹 Limpieza',
+				group: '🧺 Lavado y limpieza',
 				items: [
-					{ id: 'washer', icon: '🧺', name: 'Lavadora', watts: [400, 600, 900], showTime: true },
-					{ id: 'vacuum', icon: '🧹', name: 'Aspiradora', watts: [600, 900, 1400], showTime: true },
-					{ id: 'iron', icon: '👕', name: 'Plancha', watts: [1000, 1500, 2000], showTime: true }
+					{ id: 'washer', icon: '🧺', name: 'Lavadora', watts: [400, 500, 900], surge: 2000, hours: 1 },
+					{ id: 'dryer', icon: '👕', name: 'Secadora eléctrica', watts: [2500, 4000, 5000], surge: 0, hours: 1 },
+					{ id: 'vacuum', icon: '🧹', name: 'Aspiradora', watts: [600, 1000, 1400], surge: 2000, hours: 0.5 },
+					{ id: 'iron', icon: '👔', name: 'Plancha', watts: [1000, 1500, 2000], surge: 0, hours: 0.5 },
+					{ id: 'hairdryer', icon: '💇', name: 'Secador de pelo', watts: [1000, 1500, 2000], surge: 0, hours: 0.3 }
 				]
 			},
 			{
-				group: '💧 Otros',
+				group: '💧 Bombas y motores',
 				items: [
-					{ id: 'pump', icon: '⚙️', name: 'Bomba de Agua', watts: [300, 500, 800], showTime: true },
-					{ id: 'fan2', icon: '🌬️', name: 'Extractor', watts: [25, 40, 60], showTime: true }
+					{ id: 'pump05', icon: '⚙️', name: 'Bomba de agua ½ HP', watts: [300, 375, 500], surge: 1100, hours: 2 },
+					{ id: 'pump1', icon: '⚙️', name: 'Bomba de agua 1 HP', watts: [600, 750, 1000], surge: 2200, hours: 2 },
+					{ id: 'pool', icon: '🏊', name: 'Bomba de piscina', watts: [800, 1100, 1500], surge: 2500, hours: 4 },
+					{ id: 'compressor', icon: '🔩', name: 'Compresor de aire', watts: [900, 1200, 1800], surge: 3600, hours: 1 },
+					{ id: 'gate', icon: '🚪', name: 'Portón eléctrico', watts: [250, 350, 500], surge: 1000, hours: 0.1 },
+					{ id: 'extractor', icon: '🌬️', name: 'Extractor / campana', watts: [25, 40, 60], surge: 100, hours: 1 }
+				]
+			},
+			{
+				group: '🔨 Herramientas',
+				items: [
+					{ id: 'drill', icon: '🪛', name: 'Taladro', watts: [500, 700, 900], surge: 1500, hours: 0.5 },
+					{ id: 'grinder', icon: '🛠️', name: 'Amoladora', watts: [700, 900, 1200], surge: 2000, hours: 0.5 },
+					{ id: 'saw', icon: '🪚', name: 'Sierra circular', watts: [1000, 1400, 1800], surge: 3000, hours: 0.5 },
+					{ id: 'welder', icon: '⚡', name: 'Soldadora inverter', watts: [1800, 2500, 3500], surge: 0, hours: 1 },
+					{ id: 'mower', icon: '🌿', name: 'Cortacésped', watts: [900, 1200, 1800], surge: 3000, hours: 1 }
 				]
 			}
 		];
@@ -643,7 +739,12 @@
 			timeEstimate: document.getElementById('timeEstimate'),
 			status: document.getElementById('status'),
 			powerBar: document.getElementById('powerBar'),
-			toast: document.getElementById('toast')
+			toast: document.getElementById('toast'),
+			dailyEnergy: document.getElementById('dailyEnergy'),
+			surgeTotal: document.getElementById('surgeTotal'),
+			autonomyDaily: document.getElementById('autonomyDaily'),
+			autonomyCont: document.getElementById('autonomyCont'),
+			surgeWarn: document.getElementById('surgeWarn')
 		};
 
 		// Toast notification
@@ -660,8 +761,13 @@
 			try {
 				const saved = localStorage.getItem('plantCalc_v2');
 				if (saved) state = JSON.parse(saved);
-				// Migration from old version if needed, or just reset
 				if (!Array.isArray(state.devices)) state.devices = [];
+				// Migración: asegurar campos nuevos
+				state.devices.forEach(d => {
+					if (d.surge == null) d.surge = 0;
+					if (d.hours == null) d.hours = 4;
+					if (d.qty == null) d.qty = 1;
+				});
 			} catch (e) {
 				state.devices = [];
 			}
@@ -695,7 +801,9 @@
 					const option = document.createElement('option');
 					option.value = item.id;
 					option.textContent = `${item.icon} ${item.name}`;
-					option.dataset.watts = item.watts[1]; // Use medium value as default
+					option.dataset.watts = item.watts[1]; // valor típico por defecto
+					option.dataset.surge = item.surge || 0;
+					option.dataset.hours = item.hours || 4;
 					option.dataset.name = item.name;
 					optgroup.appendChild(option);
 				});
@@ -719,6 +827,9 @@
 		function addDevice() {
 			const name = el.newDeviceName.value.trim();
 			const watts = parseInt(el.newDeviceWatts.value);
+			const selected = el.newDeviceType.selectedOptions[0];
+			const surge = selected ? (parseInt(selected.dataset.surge) || 0) : 0;
+			const dhours = selected ? (parseFloat(selected.dataset.hours) || 4) : 4;
 
 			if (!name || isNaN(watts) || watts <= 0) {
 				showToast('⚠️ Ingresa nombre y watts válidos');
@@ -729,8 +840,9 @@
 				id: Date.now().toString(),
 				name: name,
 				watts: watts,
+				surge: surge,
 				qty: 1,
-				hours: 4
+				hours: dhours
 			};
 
 			state.devices.push(newDevice);
@@ -780,7 +892,7 @@
 				row.innerHTML = `
 					<div class="compact-info">
 						<div class="compact-name">${device.name}</div>
-						<div class="compact-details">${device.watts}W c/u</div>
+						<div class="compact-details">${device.watts}W c/u${device.surge ? ' · arranque ' + device.surge + 'W' : ''}</div>
 					</div>
 					<div class="compact-controls">
 						<div style="text-align: center">
@@ -817,27 +929,38 @@
 
 			const maxPower = state.plantPower * (state.safety / 100);
 			let totalUsed = 0;
-			let weightedEnergyPerDay = 0;
+			let dailyWh = 0;
+			let maxSurgeExtra = 0;
 
 			state.devices.forEach(device => {
-				const instantPower = device.watts * device.qty;
-				totalUsed += instantPower;
-				weightedEnergyPerDay += instantPower * device.hours;
+				const power = device.watts * device.qty;
+				totalUsed += power;
+				dailyWh += power * (device.hours || 0);
+				if (device.surge && device.surge > device.watts) {
+					maxSurgeExtra = Math.max(maxSurgeExtra, device.surge - device.watts);
+				}
 			});
+			const surgeTotal = totalUsed + maxSurgeExtra;
 
 			// Actualizar UI
-			el.powerUsed.textContent = `${totalUsed} W`;
+			el.powerUsed.textContent = `${Math.round(totalUsed)} W`;
 			el.powerAvailable.textContent = `${Math.round(maxPower)} W`;
+			el.dailyEnergy.textContent = (dailyWh / 1000).toFixed(2) + ' kWh';
+			el.surgeTotal.textContent = Math.round(surgeTotal) + ' W';
 
 			// Barra de progreso
-			const percentage = maxPower > 0 ? (totalUsed / maxPower) * 100 : 0;
+			const percentage = maxPower > 0 ? (totalUsed / maxPower) * 100 : (totalUsed > 0 ? 101 : 0);
 			el.powerBar.style.width = Math.min(percentage, 100) + '%';
 			el.powerBar.className = 'progress-fill';
 			
-			if (percentage > 100) {
+			if (totalUsed > maxPower) {
 				el.powerBar.classList.add('danger');
-				el.status.textContent = '⚠️ Sobrecarga';
+				el.status.textContent = '⛔ Sobrecarga';
 				el.status.className = 'summary-value danger';
+			} else if (state.plantPower > 0 && surgeTotal > state.plantPower) {
+				el.powerBar.classList.add('warn');
+				el.status.textContent = '⚠️ Arranque';
+				el.status.className = 'summary-value warn';
 			} else if (percentage > 85) {
 				el.powerBar.classList.add('warn');
 				el.status.textContent = '⚠️ Cerca';
@@ -847,21 +970,33 @@
 				el.status.className = 'summary-value ok';
 			}
 
-			// Tiempo estimado
-			if (state.energyWh > 0 && weightedEnergyPerDay > 0) {
-				const days = state.energyWh / weightedEnergyPerDay;
-				const hours = days * 24;
-				
-				if (hours < 1) {
-					el.timeEstimate.textContent = Math.round(hours * 60) + ' min';
-				} else if (hours < 48) {
-					el.timeEstimate.textContent = hours.toFixed(1) + ' h';
-				} else {
-					el.timeEstimate.textContent = days.toFixed(1) + ' días';
-				}
+			// Aviso de pico de arranque
+			if (state.plantPower > 0 && surgeTotal > state.plantPower) {
+				el.surgeWarn.style.display = 'block';
+				el.surgeWarn.innerHTML = `⚠️ El pico de arranque (<strong>${Math.round(surgeTotal)} W</strong>) supera la planta (${state.plantPower} W): los motores podrían no arrancar. Necesitas ≥ <strong>${Math.round(surgeTotal)} W</strong> o arrancar los equipos por separado.`;
 			} else {
-				el.timeEstimate.textContent = '-- h';
+				el.surgeWarn.style.display = 'none';
 			}
+
+			// Autonomía continua (todo encendido a la vez)
+			el.autonomyCont.textContent = (state.energyWh > 0 && totalUsed > 0) ? fmtDuration(state.energyWh / totalUsed) : '--';
+
+			// Autonomía según uso diario
+			if (state.energyWh > 0 && dailyWh > 0) {
+				const days = state.energyWh / dailyWh;
+				el.autonomyDaily.textContent = days >= 1 ? days.toFixed(1) + ' días' : fmtDuration(days * 24);
+			} else {
+				el.autonomyDaily.textContent = '--';
+			}
+
+			// Tiempo (footer) = autonomía continua
+			el.timeEstimate.textContent = (state.energyWh > 0 && totalUsed > 0) ? fmtDuration(state.energyWh / totalUsed) : '-- h';
+		}
+
+		function fmtDuration(hours) {
+			if (hours < 1) return Math.round(hours * 60) + ' min';
+			if (hours < 48) return hours.toFixed(1) + ' h';
+			return (hours / 24).toFixed(1) + ' días';
 		}
 
 		// Perfiles
@@ -878,28 +1013,59 @@
 			}
 
 			let newDevices = [];
+			let msg = '';
+			const B = Date.now();
 			if (type === 'basic') {
 				newDevices = [
-					{ id: Date.now() + '1', name: 'Bombillos LED', watts: 10, qty: 5, hours: 6 },
-					{ id: Date.now() + '2', name: 'Router WiFi', watts: 12, qty: 1, hours: 24 },
-					{ id: Date.now() + '3', name: 'Cargador Celular', watts: 15, qty: 2, hours: 4 }
+					{ id: B+'1', name: 'Bombillos LED', watts: 9, surge: 0, qty: 5, hours: 5 },
+					{ id: B+'2', name: 'Router WiFi', watts: 12, surge: 0, qty: 1, hours: 24 },
+					{ id: B+'3', name: 'Cargador de celular', watts: 10, surge: 0, qty: 2, hours: 3 }
 				];
-				showToast('✅ Perfil Básico aplicado');
+				msg = '✅ Perfil Básico aplicado';
 			} else if (type === 'home') {
 				newDevices = [
-					{ id: Date.now() + '1', name: 'Bombillos LED', watts: 10, qty: 8, hours: 6 },
-					{ id: Date.now() + '2', name: 'Nevera', watts: 150, qty: 1, hours: 24 },
-					{ id: Date.now() + '3', name: 'TV', watts: 100, qty: 1, hours: 4 },
-					{ id: Date.now() + '4', name: 'Ventilador', watts: 50, qty: 2, hours: 8 },
-					{ id: Date.now() + '5', name: 'Router WiFi', watts: 12, qty: 1, hours: 24 }
+					{ id: B+'1', name: 'Bombillos LED', watts: 9, surge: 0, qty: 8, hours: 5 },
+					{ id: B+'2', name: 'Nevera', watts: 150, surge: 1200, qty: 1, hours: 8 },
+					{ id: B+'3', name: 'Televisor LED', watts: 100, surge: 0, qty: 1, hours: 4 },
+					{ id: B+'4', name: 'Ventilador de pie', watts: 70, surge: 0, qty: 2, hours: 8 },
+					{ id: B+'5', name: 'Router WiFi', watts: 12, surge: 0, qty: 1, hours: 24 },
+					{ id: B+'6', name: 'Laptop', watts: 65, surge: 0, qty: 1, hours: 6 }
 				];
-				showToast('✅ Perfil Casa aplicado');
+				msg = '✅ Perfil Casa aplicado';
+			} else if (type === 'office') {
+				newDevices = [
+					{ id: B+'1', name: 'PC de escritorio', watts: 250, surge: 0, qty: 1, hours: 8 },
+					{ id: B+'2', name: 'Monitor', watts: 30, surge: 0, qty: 2, hours: 8 },
+					{ id: B+'3', name: 'Laptop', watts: 65, surge: 0, qty: 1, hours: 8 },
+					{ id: B+'4', name: 'Router WiFi', watts: 12, surge: 0, qty: 1, hours: 24 },
+					{ id: B+'5', name: 'Bombillos LED', watts: 9, surge: 0, qty: 4, hours: 6 }
+				];
+				msg = '✅ Perfil Oficina aplicado';
+			} else if (type === 'emergency') {
+				newDevices = [
+					{ id: B+'1', name: 'Nevera', watts: 150, surge: 1200, qty: 1, hours: 8 },
+					{ id: B+'2', name: 'Bombillos LED', watts: 9, surge: 0, qty: 4, hours: 5 },
+					{ id: B+'3', name: 'Router WiFi', watts: 12, surge: 0, qty: 1, hours: 24 },
+					{ id: B+'4', name: 'Cargador de celular', watts: 10, surge: 0, qty: 2, hours: 3 },
+					{ id: B+'5', name: 'Televisor LED', watts: 100, surge: 0, qty: 1, hours: 3 }
+				];
+				msg = '✅ Perfil Emergencia aplicado';
+			} else if (type === 'kitchen') {
+				newDevices = [
+					{ id: B+'1', name: 'Nevera', watts: 150, surge: 1200, qty: 1, hours: 8 },
+					{ id: B+'2', name: 'Microondas', watts: 1100, surge: 0, qty: 1, hours: 0.5 },
+					{ id: B+'3', name: 'Cafetera', watts: 900, surge: 0, qty: 1, hours: 0.5 },
+					{ id: B+'4', name: 'Hervidor eléctrico', watts: 1500, surge: 0, qty: 1, hours: 0.3 },
+					{ id: B+'5', name: 'Licuadora', watts: 400, surge: 800, qty: 1, hours: 0.2 }
+				];
+				msg = '✅ Perfil Cocina aplicado';
 			}
 			
 			state.devices = [...state.devices, ...newDevices];
 			saveState();
 			renderList();
 			calculate();
+			showToast(msg);
 		}
 
 		// Event listeners
@@ -918,6 +1084,9 @@
 		});
 		document.getElementById('profileBasic').addEventListener('click', () => applyProfile('basic'));
 		document.getElementById('profileHome').addEventListener('click', () => applyProfile('home'));
+		document.getElementById('profileOffice').addEventListener('click', () => applyProfile('office'));
+		document.getElementById('profileEmergency').addEventListener('click', () => applyProfile('emergency'));
+		document.getElementById('profileKitchen').addEventListener('click', () => applyProfile('kitchen'));
 		document.getElementById('profileClear').addEventListener('click', () => applyProfile('clear'));
 		
 		el.addDeviceBtn.addEventListener('click', addDevice);
